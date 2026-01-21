@@ -1,11 +1,10 @@
 import json
 import logging
 import os
-import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable
 from pathlib import Path
+from typing import Callable
 
 import pandas as pd
 
@@ -18,11 +17,12 @@ logger.setLevel(logging.INFO)
 log_file = log_dir / f"{__name__}.log"
 file_handler = logging.FileHandler(log_file)
 
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 file_handler.setFormatter(file_formatter)
 
 logger.addHandler(file_handler)
-
 
 
 def read_excel_file(road_to_excel_file: str):
@@ -35,11 +35,12 @@ df = read_excel_file("../data/operations.xlsx")
 
 def report_to_file(filename: str | None = None) -> Callable:
     logger.info("Начата обработка функции")
-    '''
+    """
     записывает вывод функции в json файл
 
     filename: авто имя или заданное пользователем
-    '''
+    """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -48,7 +49,6 @@ def report_to_file(filename: str | None = None) -> Callable:
             file_name = (
                 filename
                 or f"report_{func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-
             )
             os.makedirs("reports", exist_ok=True)
             file_path = os.path.join("reports", file_name)
@@ -74,7 +74,9 @@ def report_to_file(filename: str | None = None) -> Callable:
             else:
                 with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(result, f, ensure_ascii=False, indent=2)
-                    logger.info("отчет составлен и будет сохранен в виде отдельного файла")
+                    logger.info(
+                        "отчет составлен и будет сохранен в виде отдельного файла"
+                    )
             print(f"📄 Отчет сохранен: {file_path}")
             return result
 
@@ -85,7 +87,7 @@ def report_to_file(filename: str | None = None) -> Callable:
 
 @report_to_file()
 def spending_by_category(df_, category, date):
-    '''выводит траты по категории и заданной дате на три месяца назад'''
+    """выводит траты по категории и заданной дате на три месяца назад"""
     df = df_.copy()
     day, month, year = date
     df["Дата платежа"] = pd.to_datetime(

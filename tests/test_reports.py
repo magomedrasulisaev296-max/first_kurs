@@ -1,12 +1,12 @@
 # test_decorator.py
-import pytest
 import json
-import pandas as pd
-import os
-from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock, mock_open, call
-import tempfile
 import shutil
+import tempfile
+from datetime import datetime, timedelta
+from unittest.mock import mock_open, patch
+
+import pandas as pd
+import pytest
 
 
 # Создаем временную директорию для тестов
@@ -19,21 +19,23 @@ def temp_dir():
 
 
 # Импортируем тестируемый модуль с моками
-with patch('pandas.read_excel') as mock_read_excel:
-    mock_df = pd.DataFrame({
-        'Дата платежа': ['15.01.2023', '20.01.2023'],
-        'Категория': ['Food', 'Transport'],
-        'Сумма платежа': [-1000, -500]
-    })
+with patch("pandas.read_excel") as mock_read_excel:
+    mock_df = pd.DataFrame(
+        {
+            "Дата платежа": ["15.01.2023", "20.01.2023"],
+            "Категория": ["Food", "Transport"],
+            "Сумма платежа": [-1000, -500],
+        }
+    )
     mock_read_excel.return_value = mock_df
 
-    from src.reports import read_excel_file, report_to_file, spending_by_category, df
+    from src.reports import read_excel_file, report_to_file, spending_by_category
 
 
 def test_read_excel_file():
     """Тест функции read_excel_file"""
-    with patch('pandas.read_excel') as mock_read:
-        test_df = pd.DataFrame({'A': [1, 2]})
+    with patch("pandas.read_excel") as mock_read:
+        test_df = pd.DataFrame({"A": [1, 2]})
         mock_read.return_value = test_df
 
         result = read_excel_file("test.xlsx")
@@ -47,44 +49,50 @@ def test_spending_by_category_logic():
     """Тест логики spending_by_category"""
     # Создаем тестовый DataFrame
     test_data = {
-        'Дата платежа': ['15.01.2023', '20.02.2023', '10.12.2022', '25.01.2023'],
-        'Категория': ['Food', 'Food', 'Transport', 'Food'],
-        'Сумма платежа': [-1000, -500, -300, -200]
+        "Дата платежа": ["15.01.2023", "20.02.2023", "10.12.2022", "25.01.2023"],
+        "Категория": ["Food", "Food", "Transport", "Food"],
+        "Сумма платежа": [-1000, -500, -300, -200],
     }
     df_test = pd.DataFrame(test_data)
 
     # Преобразуем даты
-    df_test['Дата платежа'] = pd.to_datetime(df_test['Дата платежа'], format='%d.%m.%Y', dayfirst=True)
+    df_test["Дата платежа"] = pd.to_datetime(
+        df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True
+    )
 
     # Вызываем функцию
     result = spending_by_category.__wrapped__(df_test, "Food", [31, 1, 2023])
 
     # Проверяем
     assert len(result) == 2  # Только 2 транзакции Food за 90 дней до 31.01.2023
-    assert all(result['Категория'] == 'Food')
-    assert all(result['Сумма платежа'] < 0)
+    assert all(result["Категория"] == "Food")
+    assert all(result["Сумма платежа"] < 0)
     print("✅ spending_by_category логика")
 
 
 def test_report_to_file_decorator(temp_dir):
     """Тест декоратора report_to_file"""
     # Мокаем все зависимости
-    with patch('os.makedirs') as mock_makedirs, \
-            patch('builtins.open', mock_open()) as mock_file, \
-            patch('json.dump') as mock_json_dump, \
-            patch('src.reports.datetime') as mock_datetime:
+    with (
+        patch("os.makedirs") as mock_makedirs,
+        patch("builtins.open", mock_open()) as mock_file,
+        patch("json.dump") as mock_json_dump,
+        patch("src.reports.datetime") as mock_datetime,
+    ):
         # Настраиваем моки
-        mock_datetime.now.return_value.strftime.return_value = '20240101_120000'
+        mock_datetime.now.return_value.strftime.return_value = "20240101_120000"
 
         # Создаем тестовую функцию
         @report_to_file()
         def test_func():
-            return pd.DataFrame({
-                'Дата платежа': pd.to_datetime(['2023-01-15', '2023-01-20']),
-                'Категория': ['Food', 'Transport'],
-                'Сумма платежа': [-1000, -500],
-                'Другие колонки': ['A', 'B']
-            })
+            return pd.DataFrame(
+                {
+                    "Дата платежа": pd.to_datetime(["2023-01-15", "2023-01-20"]),
+                    "Категория": ["Food", "Transport"],
+                    "Сумма платежа": [-1000, -500],
+                    "Другие колонки": ["A", "B"],
+                }
+            )
 
         # Вызываем
         result = test_func()
@@ -101,17 +109,21 @@ def test_report_to_file_decorator(temp_dir):
 def test_report_to_file_with_dataframe(temp_dir):
     """Тест декоратора с DataFrame"""
     # Создаем тестовый DataFrame
-    test_df = pd.DataFrame({
-        'Дата платежа': pd.to_datetime(['2023-01-15', '2023-01-20']),
-        'Категория': ['Food', 'Transport'],
-        'Сумма платежа': [-1000, -500],
-        'Дополнительно': ['A', 'B']
-    })
+    test_df = pd.DataFrame(
+        {
+            "Дата платежа": pd.to_datetime(["2023-01-15", "2023-01-20"]),
+            "Категория": ["Food", "Transport"],
+            "Сумма платежа": [-1000, -500],
+            "Дополнительно": ["A", "B"],
+        }
+    )
 
     # Тестируем логику внутри декоратора
     needed_columns = ["Дата платежа", "Категория", "Сумма платежа"]
     result_filtered = test_df[needed_columns].copy()
-    result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime("%d.%m.%Y")
+    result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime(
+        "%d.%m.%Y"
+    )
 
     total_sum = float(abs(result_filtered["Сумма платежа"].sum()))
 
@@ -128,7 +140,7 @@ def test_report_to_file_with_dataframe(temp_dir):
 
 def test_report_to_file_empty_dataframe():
     """Тест с пустым DataFrame"""
-    empty_df = pd.DataFrame(columns=['Дата платежа', 'Категория', 'Сумма платежа'])
+    empty_df = pd.DataFrame(columns=["Дата платежа", "Категория", "Сумма платежа"])
 
     # Тестируем логику
     if not empty_df.empty:
@@ -137,7 +149,11 @@ def test_report_to_file_empty_dataframe():
     else:
         result_filtered = empty_df
 
-    total_sum = 0.0 if result_filtered.empty else float(abs(result_filtered["Сумма платежа"].sum()))
+    total_sum = (
+        0.0
+        if result_filtered.empty
+        else float(abs(result_filtered["Сумма платежа"].sum()))
+    )
 
     assert total_sum == 0.0
     print("✅ Empty DataFrame handling")
@@ -145,13 +161,17 @@ def test_report_to_file_empty_dataframe():
 
 def test_spending_by_category_filters():
     """Тест фильтров spending_by_category"""
-    df_test = pd.DataFrame({
-        'Дата платежа': ['15.01.2023', '20.10.2022', '10.12.2022'],
-        'Категория': ['Food', 'Food', 'Transport'],
-        'Сумма платежа': [-1000, -500, 300]  # Последняя положительная
-    })
+    df_test = pd.DataFrame(
+        {
+            "Дата платежа": ["15.01.2023", "20.10.2022", "10.12.2022"],
+            "Категория": ["Food", "Food", "Transport"],
+            "Сумма платежа": [-1000, -500, 300],  # Последняя положительная
+        }
+    )
 
-    df_test['Дата платежа'] = pd.to_datetime(df_test['Дата платежа'], format='%d.%m.%Y', dayfirst=True)
+    df_test["Дата платежа"] = pd.to_datetime(
+        df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True
+    )
 
     # Логика фильтров
     category = "Food"
@@ -161,16 +181,16 @@ def test_spending_by_category_filters():
     start_date = end_date - timedelta(days=90)
 
     mask = (
-            (df_test['Категория'] == category) &
-            (df_test['Дата платежа'] >= start_date) &
-            (df_test['Дата платежа'] <= end_date) &
-            (df_test['Сумма платежа'] < 0)
+        (df_test["Категория"] == category)
+        & (df_test["Дата платежа"] >= start_date)
+        & (df_test["Дата платежа"] <= end_date)
+        & (df_test["Сумма платежа"] < 0)
     )
 
     result = df_test[mask]
 
     assert len(result) == 1  # Только одна транзакция Food за 90 дней
-    assert result.iloc[0]['Сумма платежа'] == -1000
+    assert result.iloc[0]["Сумма платежа"] == -1000
     print("✅ Фильтры spending_by_category")
 
 
@@ -190,11 +210,9 @@ def test_date_calculation():
 
 def test_total_sum_calculation():
     """Тест расчета общей суммы"""
-    df_test = pd.DataFrame({
-        'Сумма платежа': [-1000, -500, -300]
-    })
+    df_test = pd.DataFrame({"Сумма платежа": [-1000, -500, -300]})
 
-    total_spent = abs(df_test['Сумма платежа'].sum())
+    total_spent = abs(df_test["Сумма платежа"].sum())
     assert total_spent == 1800.0
 
     # Проверяем форматирование
@@ -210,8 +228,12 @@ def test_json_serialization():
         "total_sum": 1500.0,
         "transactions": [
             {"Дата платежа": "15.01.2023", "Категория": "Food", "Сумма платежа": -1000},
-            {"Дата платежа": "20.01.2023", "Категория": "Transport", "Сумма платежа": -500}
-        ]
+            {
+                "Дата платежа": "20.01.2023",
+                "Категория": "Transport",
+                "Сумма платежа": -500,
+            },
+        ],
     }
 
     # Сериализуем

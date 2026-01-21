@@ -1,13 +1,22 @@
-from unittest.mock import patch
-from src.views import veb_json
 import json
+from unittest.mock import patch
+
+from src.views import veb_json
 
 
 @patch("src.views.currency_of_valuets")
 @patch("src.views.currency_stoks")
-def test_main_view_output(mock_stocks, mock_currencies, sample_df, sample_user_settings):
-    mock_stocks.return_value = [{"stock": "AAPL", "price": 150.0}, {"stock": "GOOGL", "price": 2500.0}]
-    mock_currencies.return_value = [{"currency": "USD", "rate": 73.0}, {"currency": "EUR", "rate": 86.0}]
+def test_main_view_output(
+    mock_stocks, mock_currencies, sample_df, sample_user_settings
+):
+    mock_stocks.return_value = [
+        {"stock": "AAPL", "price": 150.0},
+        {"stock": "GOOGL", "price": 2500.0},
+    ]
+    mock_currencies.return_value = [
+        {"currency": "USD", "rate": 73.0},
+        {"currency": "EUR", "rate": 86.0},
+    ]
 
     result = veb_json()
     data = json.loads(result)
