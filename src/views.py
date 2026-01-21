@@ -1,6 +1,6 @@
 import json
 
-from utils import (all_cards,
+from src.utils import (all_cards,
                    currency_of_valuets,
                    currency_stoks,
                    greetings,
@@ -30,4 +30,6 @@ def veb_json() -> str:
 
 if __name__ == "__main__":
     print(veb_json())
+
+
 
