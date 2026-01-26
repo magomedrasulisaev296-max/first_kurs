@@ -1,44 +1,27 @@
-# test_no_import.py
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
+from src.views import veb_json
 
 
-def test_veb_json_logic():
-    """Тестируем логику без импорта проблемного модуля"""
+@patch("src.views.currency_of_valuets")
+@patch("src.views.currency_stoks")
+def test_main_view_output(mock_stocks, mock_currencies, sample_df, sample_user_settings):
+    mock_stocks.return_value = [
+        {"stock": "AAPL", "price": 150.0},
+        {"stock": "GOOGL", "price": 2500.0},
+    ]
+    mock_currencies.return_value = [
+        {"currency": "USD", "rate": 73.0},
+        {"currency": "EUR", "rate": 86.0},
+    ]
 
-    # Создаем фейковый модуль views для тестирования
-    class FakeViews:
-        @staticmethod
-        def veb_json():
-            """Фейковая функция которая имитирует реальную"""
-            # Мокаем результаты
-            greeting = "Good Morning"
-            cards = [{"last_digits": "*1234", "total_spent": 100.0}]
-            transactions = [{"date": "2023-01-01", "amount": 500.0}]
-            currency = [{"currency": "USD", "rate": 90.91}]
-            stocks = [{"stock": "AAPL", "price": 175.50}]
-
-            final_report = {
-                "greeting": greeting,
-                "cards": cards,
-                "top_transactions": transactions,
-                "currency_of_valuets": currency,
-                "currency_stoks": stocks,
-            }
-            return json.dumps(final_report, indent=4)
-
-    # Тестируем
-    result = FakeViews.veb_json()
+    result = veb_json()
     data = json.loads(result)
 
-    # Проверки
-    assert data["greeting"] == "Good Morning"
-    assert len(data["cards"]) == 1
-    assert data["cards"][0]["last_digits"] == "*1234"
-
-    print("✅ Логика протестирована")
-    print(f"Результат: {json.dumps(data, indent=2)}")
-
-
-if __name__ == "__main__":
-    test_veb_json_logic()
+    assert isinstance(data, dict)
+    assert isinstance(data["greeting"], str)
+    assert isinstance(data["cards"], list)
+    assert isinstance(data["top_transactions"], list)
+    assert data["currency_of_valuets"] == mock_currencies.return_value
+    assert data["currency_stoks"] == mock_stocks.return_value

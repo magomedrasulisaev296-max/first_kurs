@@ -1,11 +1,10 @@
 import json
 import logging
 import os
-import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable
 from pathlib import Path
+from typing import Callable
 
 import pandas as pd
 
@@ -24,7 +23,6 @@ file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
 
 
-
 def read_excel_file(road_to_excel_file: str):
     """возврощает excel файлы в ввиде словоря"""
     return pd.read_excel(road_to_excel_file)
@@ -35,21 +33,18 @@ df = read_excel_file("../data/operations.xlsx")
 
 def report_to_file(filename: str | None = None) -> Callable:
     logger.info("Начата обработка функции")
-    '''
+    """
     записывает вывод функции в json файл
 
     filename: авто имя или заданное пользователем
-    '''
+    """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
 
-            file_name = (
-                filename
-                or f"report_{func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-
-            )
+            file_name = filename or f"report_{func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             os.makedirs("reports", exist_ok=True)
             file_path = os.path.join("reports", file_name)
 
@@ -57,14 +52,8 @@ def report_to_file(filename: str | None = None) -> Callable:
                 logger.info("входные данные прошли проверку работа продолжается")
                 needed_columns = ["Дата платежа", "Категория", "Сумма платежа"]
                 result_filtered = result[needed_columns].copy()
-                result_filtered["Дата платежа"] = result_filtered[
-                    "Дата платежа"
-                ].dt.strftime("%d.%m.%Y")
-                total_sum = (
-                    float(abs(result_filtered["Сумма платежа"].sum()))
-                    if not result_filtered.empty
-                    else 0.0
-                )
+                result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime("%d.%m.%Y")
+                total_sum = float(abs(result_filtered["Сумма платежа"].sum())) if not result_filtered.empty else 0.0
                 json_data = {
                     "total_sum": total_sum,
                     "transactions": result_filtered.to_dict("records"),
@@ -85,12 +74,10 @@ def report_to_file(filename: str | None = None) -> Callable:
 
 @report_to_file()
 def spending_by_category(df_, category, date):
-    '''выводит траты по категории и заданной дате на три месяца назад'''
+    """выводит траты по категории и заданной дате на три месяца назад"""
     df = df_.copy()
     day, month, year = date
-    df["Дата платежа"] = pd.to_datetime(
-        df["Дата платежа"], format="%d.%m.%Y", dayfirst=True, errors="coerce"
-    )
+    df["Дата платежа"] = pd.to_datetime(df["Дата платежа"], format="%d.%m.%Y", dayfirst=True, errors="coerce")
     end_date = datetime(year, month, day)
     start_date = end_date - timedelta(days=90)
     mask = (
