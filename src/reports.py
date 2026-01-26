@@ -17,9 +17,7 @@ logger.setLevel(logging.INFO)
 log_file = log_dir / f"{__name__}.log"
 file_handler = logging.FileHandler(log_file)
 
-file_formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(file_formatter)
 
 logger.addHandler(file_handler)
@@ -46,10 +44,7 @@ def report_to_file(filename: str | None = None) -> Callable:
         def wrapper(*args, **kwargs):
             result = func(*args, **kwargs)
 
-            file_name = (
-                filename
-                or f"report_{func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-            )
+            file_name = filename or f"report_{func.__name__}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
             os.makedirs("reports", exist_ok=True)
             file_path = os.path.join("reports", file_name)
 
@@ -57,14 +52,8 @@ def report_to_file(filename: str | None = None) -> Callable:
                 logger.info("входные данные прошли проверку работа продолжается")
                 needed_columns = ["Дата платежа", "Категория", "Сумма платежа"]
                 result_filtered = result[needed_columns].copy()
-                result_filtered["Дата платежа"] = result_filtered[
-                    "Дата платежа"
-                ].dt.strftime("%d.%m.%Y")
-                total_sum = (
-                    float(abs(result_filtered["Сумма платежа"].sum()))
-                    if not result_filtered.empty
-                    else 0.0
-                )
+                result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime("%d.%m.%Y")
+                total_sum = float(abs(result_filtered["Сумма платежа"].sum())) if not result_filtered.empty else 0.0
                 json_data = {
                     "total_sum": total_sum,
                     "transactions": result_filtered.to_dict("records"),
@@ -74,9 +63,7 @@ def report_to_file(filename: str | None = None) -> Callable:
             else:
                 with open(file_path, "w", encoding="utf-8") as f:
                     json.dump(result, f, ensure_ascii=False, indent=2)
-                    logger.info(
-                        "отчет составлен и будет сохранен в виде отдельного файла"
-                    )
+                    logger.info("отчет составлен и будет сохранен в виде отдельного файла")
             print(f"📄 Отчет сохранен: {file_path}")
             return result
 
@@ -90,9 +77,7 @@ def spending_by_category(df_, category, date):
     """выводит траты по категории и заданной дате на три месяца назад"""
     df = df_.copy()
     day, month, year = date
-    df["Дата платежа"] = pd.to_datetime(
-        df["Дата платежа"], format="%d.%m.%Y", dayfirst=True, errors="coerce"
-    )
+    df["Дата платежа"] = pd.to_datetime(df["Дата платежа"], format="%d.%m.%Y", dayfirst=True, errors="coerce")
     end_date = datetime(year, month, day)
     start_date = end_date - timedelta(days=90)
     mask = (

@@ -30,14 +30,10 @@ def analyze_cashback_categories(data: List[Dict], year: int, month: int) -> str:
                 raise ValueError(f"Отсутствует обязательная колонка: {col}")
 
         df["Дата операции"] = pd.to_datetime(df["Дата операции"], errors="coerce")
-        mask = (df["Дата операции"].dt.year == year) & (
-            df["Дата операции"].dt.month == month
-        )
+        mask = (df["Дата операции"].dt.year == year) & (df["Дата операции"].dt.month == month)
         monthly_data = df[mask]
 
-        monthly_data = monthly_data[
-            (monthly_data["Сумма операции"] < 0) & (monthly_data["Категория"].notna())
-        ].copy()
+        monthly_data = monthly_data[(monthly_data["Сумма операции"] < 0) & (monthly_data["Категория"].notna())].copy()
 
         if monthly_data.empty:
             logger.warning(f"Нет данных за {month}/{year}")
@@ -50,14 +46,10 @@ def analyze_cashback_categories(data: List[Dict], year: int, month: int) -> str:
             cashback = abs(spending) * 0.01
             cashback_by_category[category] = round(cashback, 2)
 
-        sorted_cashback = dict(
-            sorted(cashback_by_category.items(), key=lambda x: x[1], reverse=True)
-        )
+        sorted_cashback = dict(sorted(cashback_by_category.items(), key=lambda x: x[1], reverse=True))
 
         logger.info(f"Проанализировано {len(sorted_cashback)} категорий")
-        logger.info(
-            f"Максимальный кешбэк: {max(sorted_cashback.values()) if sorted_cashback else 0}"
-        )
+        logger.info(f"Максимальный кешбэк: {max(sorted_cashback.values()) if sorted_cashback else 0}")
 
         return json.dumps(sorted_cashback, ensure_ascii=False, indent=2)
 

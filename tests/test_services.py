@@ -2,6 +2,7 @@
 import json
 import os
 import sys
+
 import pytest
 
 from src.services import analyze_cashback_categories
@@ -69,9 +70,7 @@ def test_wrong_month():
 
 def test_missing_columns():
     """Тест отсутствия колонок"""
-    test_data = [
-        {"Дата операции": "2024-01-15", "Сумма операции": -5000.0}  # Нет Категории
-    ]
+    test_data = [{"Дата операции": "2024-01-15", "Сумма операции": -5000.0}]  # Нет Категории
 
     with pytest.raises(ValueError, match="Отсутствует обязательная колонка: Категория"):
         analyze_cashback_categories(test_data, 2024, 1)

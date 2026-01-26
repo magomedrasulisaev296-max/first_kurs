@@ -1,15 +1,7 @@
 import json
 
-from src.utils import (
-    all_cards,
-    currency_of_valuets,
-    currency_stoks,
-    greetings,
-    operations,
-    top_transactions,
-    values_stocks_to_request,
-    values_to_request,
-)
+from src.utils import (all_cards, currency_of_valuets, currency_stoks, greetings, operations, top_transactions,
+                       values_stocks_to_request, values_to_request)
 
 
 def veb_json() -> str:

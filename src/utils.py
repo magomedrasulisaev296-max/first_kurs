@@ -26,7 +26,7 @@ def greetings():
 
 
 def read_excel_file(road_to_excel_file: str):
-    """возврощает excel файлы в ввиде словоря"""
+    """возврощает excel файл"""
     df = pd.read_excel(road_to_excel_file)
     return df
 
@@ -38,12 +38,8 @@ def all_cards(operations: pd.DataFrame) -> list[dict]:
     """выводит все номера карт имеющиеся в дата-фрейме(operations)"""
     list_ = []
     operations_sort = operations[operations["Сумма платежа"] < 0]
-    operations_sort_by_group = (
-        operations_sort.groupby(["Номер карты"]).agg({"Сумма платежа": "sum"}).abs()
-    )
-    operations_sort_by_value = operations_sort_by_group.sort_values(
-        by=["Сумма платежа"], ascending=True
-    )
+    operations_sort_by_group = operations_sort.groupby(["Номер карты"]).agg({"Сумма платежа": "sum"}).abs()
+    operations_sort_by_value = operations_sort_by_group.sort_values(by=["Сумма платежа"], ascending=True)
     for i, some_price in operations_sort_by_value.iterrows():
         list_.append(
             {

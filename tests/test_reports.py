@@ -56,9 +56,7 @@ def test_spending_by_category_logic():
     df_test = pd.DataFrame(test_data)
 
     # Преобразуем даты
-    df_test["Дата платежа"] = pd.to_datetime(
-        df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True
-    )
+    df_test["Дата платежа"] = pd.to_datetime(df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True)
 
     # Вызываем функцию
     result = spending_by_category.__wrapped__(df_test, "Food", [31, 1, 2023])
@@ -121,9 +119,7 @@ def test_report_to_file_with_dataframe(temp_dir):
     # Тестируем логику внутри декоратора
     needed_columns = ["Дата платежа", "Категория", "Сумма платежа"]
     result_filtered = test_df[needed_columns].copy()
-    result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime(
-        "%d.%m.%Y"
-    )
+    result_filtered["Дата платежа"] = result_filtered["Дата платежа"].dt.strftime("%d.%m.%Y")
 
     total_sum = float(abs(result_filtered["Сумма платежа"].sum()))
 
@@ -149,11 +145,7 @@ def test_report_to_file_empty_dataframe():
     else:
         result_filtered = empty_df
 
-    total_sum = (
-        0.0
-        if result_filtered.empty
-        else float(abs(result_filtered["Сумма платежа"].sum()))
-    )
+    total_sum = 0.0 if result_filtered.empty else float(abs(result_filtered["Сумма платежа"].sum()))
 
     assert total_sum == 0.0
     print("✅ Empty DataFrame handling")
@@ -169,9 +161,7 @@ def test_spending_by_category_filters():
         }
     )
 
-    df_test["Дата платежа"] = pd.to_datetime(
-        df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True
-    )
+    df_test["Дата платежа"] = pd.to_datetime(df_test["Дата платежа"], format="%d.%m.%Y", dayfirst=True)
 
     # Логика фильтров
     category = "Food"

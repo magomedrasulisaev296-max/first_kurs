@@ -23,11 +23,7 @@ with patch("pandas.read_excel") as mock_read_excel:
     with patch("dotenv.load_dotenv"):
         with patch(
             "builtins.open",
-            mock_open(
-                read_data=json.dumps(
-                    {"user_currencies": ["USD"], "user_stocks": ["AAPL"]}
-                )
-            ),
+            mock_open(read_data=json.dumps({"user_currencies": ["USD"], "user_stocks": ["AAPL"]})),
         ):
             with patch(
                 "json.load",
@@ -84,9 +80,7 @@ def test_edge_cases():
     assert all_cards(df_empty) == []
 
     # Только положительные
-    df_positive = pd.DataFrame(
-        {"Номер карты": ["*1111"], "Сумма платежа": [1000], "Категория": ["Food"]}
-    )
+    df_positive = pd.DataFrame({"Номер карты": ["*1111"], "Сумма платежа": [1000], "Категория": ["Food"]})
     assert all_cards(df_positive) == []
     print("✅ Граничные случаи")
 
